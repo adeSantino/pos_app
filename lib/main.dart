@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'auth/auth_gate.dart';
+import 'package:pos_app/main/dashboard.dart';
+import 'package:pos_app/main/checkout.dart';
+import 'package:pos_app/main/reports.dart';
+import 'package:pos_app/main/login.dart';
+import 'package:pos_app/main/register.dart';
 
 void main() async{
   await Supabase.initialize(url: "https://zezehkbeskswjcarjnqv.supabase.co",
@@ -18,8 +22,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'POS Application',
-      home: AuthGate(),
+      title: 'POS with RFID',
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const DashboardScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
+        '/reports': (context) => const ReportsScreen(),
+      },
     );
   }
 }
