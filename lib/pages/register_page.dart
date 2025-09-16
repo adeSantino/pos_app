@@ -1,41 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:pos_app/auth/auth_service.dart';
-import 'package:pos_app/pages/register_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget  {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final authService = AuthService();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  void login() async {
+  void signUp() async {
     final email = _emailController.text;
     final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
     
-    try{
-      await authService.signInWithEmailPassword(email, password);
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Password don't match")));
+      return;
     }
-    
-    catch (e) {
+
+    try{
+      await authService.signUpWithEmailPassword(email, password);
+
+      Navigator.pop(context);
+    }
+    catch (e){
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text("Error: $e")));
       }
     }
-  }
 
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
+      appBar: AppBar(title: const Text("Sign Up"),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 50),
@@ -46,27 +54,25 @@ class _LoginPageState extends State<LoginPage> {
           ),
 
           TextField(
-              controller: _passwordController,
+            controller: _passwordController,
             decoration: const InputDecoration(labelText: "Password"),
+          ),
+
+          TextField(
+            controller: _confirmPasswordController,
+            decoration: const InputDecoration(labelText: "Confirm Password"),
           ),
 
           const SizedBox(height: 12),
 
           ElevatedButton(
-            onPressed: login,
-            child: const Text("Login"),
+            onPressed: signUp,
+            child: const Text("Sign Up"),
           ),
 
-          GestureDetector(
-            onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const RegisterPage(),
-                )),
-            child: const Center(child: Text("Don't have an account? Sign Up")),
-          ),
         ],
       ),
     );
   }
 }
+

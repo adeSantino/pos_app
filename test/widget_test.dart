@@ -11,20 +11,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Login screen smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const POSApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the login screen is displayed
+    expect(find.byType(AppBar), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(2)); // username and password
+    expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Enter username and password
+    await tester.enterText(find.byType(TextField).first, 'testuser');
+    await tester.enterText(find.byType(TextField).last, 'testpass');
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Tap the login button
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+    await tester.pumpAndSettle();
+
+    // Verify navigation to dashboard
+    expect(find.text('Dashboard'), findsOneWidget);
   });
 }
