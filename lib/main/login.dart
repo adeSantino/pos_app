@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pos_app/auth/auth_service.dart';
+import 'package:pos_app/main/register.dart';
+import 'package:pos_app/pages/register_page.dart'; // Import if you have a register page
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -8,19 +11,57 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthService();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
+  bool _isLoading = false;
 
-  void _login() {
-    if (_usernameController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
-      Navigator.pushReplacementNamed(context, '/reports');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter username and password')),
-      );
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final email = _usernameController.text;
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackBar('Please enter your username and password.');
+      setState(() {
+        _isLoading = false;
+      });
+      return;
     }
+
+    try {
+      await _authService.signInWithEmailPassword(email, password);
+      if (mounted) {
+        // Navigate to reports page on success
+        Navigator.pushReplacementNamed(context, '/reports');
+      }
+    } catch (e) {
+      _showSnackBar("Error: ${e.toString()}");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -67,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    
+
                     // Polygonal background elements
                     Positioned(
                       top: 100,
@@ -117,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    
+
                     // Left side content
                     Positioned(
                       left: 50,
@@ -128,16 +169,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(20),
-                            child: Column(
+                            child: const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.eco,
                                   color: Colors.white,
                                   size: 40,
                                 ),
-                                const SizedBox(height: 10),
-                                const Text(
+                                SizedBox(height: 10),
+                                Text(
                                   'Welcome to',
                                   style: TextStyle(
                                     color: Colors.white,
@@ -146,8 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     letterSpacing: 2,
                                   ),
                                 ),
-                                const SizedBox(height: 5),
-                                const Text(
+                                SizedBox(height: 5),
+                                Text(
                                   'POS',
                                   style: TextStyle(
                                     color: Colors.white70,
@@ -155,8 +196,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     letterSpacing: 1,
                                   ),
                                 ),
-                                const SizedBox(height: 5),
-                                const Text(
+                                SizedBox(height: 5),
+                                Text(
                                   'Mark 1',
                                   style: TextStyle(
                                     color: Colors.white60,
@@ -173,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            
+
             // Right Panel - Login Form
             Expanded(
               flex: 1,
@@ -192,8 +233,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         size: 50,
                       ),
                       const SizedBox(height: 40),
-                      
-                      // Username Field
+
+                      // Username/Email Field
                       TextField(
                         controller: _usernameController,
                         decoration: InputDecoration(
@@ -220,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Password Field
                       TextField(
                         controller: _passwordController,
@@ -260,7 +301,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Remember me and Forgot Password
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -282,35 +323,26 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.email_outlined,
-                                color: Colors.black,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              TextButton(
-                                onPressed: () {
-                                  // Handle forgot password
-                                },
-                                child: const Text(
-                                  'Forgot Password',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ),
-                            ],
+                          TextButton(
+                            onPressed: () {
+                              // Handle forgot password logic here
+                              _showSnackBar('Forgot password pressed.');
+                            },
+                            child: const Text(
+                              'Forgot Password',
+                              style: TextStyle(color: Colors.black),
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 30),
-                      
+
                       // Login Button
                       SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: _login,
+                          onPressed: _isLoading ? null : _login, // Disable button while loading
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF357ABD),
                             foregroundColor: Colors.white,
@@ -319,7 +351,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                              : const Text(
                             'LOGIN',
                             style: TextStyle(
                               fontSize: 16,
@@ -330,7 +366,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Register Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -341,7 +377,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushReplacementNamed(context, '/register');
+                              // Use the correct navigation for your app's routing
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterScreen(),
+                                ),
+                              );
                             },
                             child: const Text(
                               'Sign Up',

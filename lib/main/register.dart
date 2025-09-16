@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_app/auth/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -8,29 +9,47 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final authService = AuthService();
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  void _register() {
-    if (_nameController.text.isNotEmpty && 
-        _emailController.text.isNotEmpty && 
-        _passwordController.text.isNotEmpty &&
-        _confirmPasswordController.text.isNotEmpty) {
-      if (_passwordController.text == _confirmPasswordController.text) {
-        Navigator.pushReplacementNamed(context, '/');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match')),
-        );
-      }
-    } else {
+  Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (_nameController.text.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    try {
+      await authService.signUpWithEmailPassword(email, password);
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
     }
   }
 
@@ -51,140 +70,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: Row(
           children: [
-            // Left Panel - Background Design
+            // Left Panel
             Expanded(
               flex: 1,
-              child: Container(
-                child: Stack(
-                  children: [
-                    // Back Button
-                    Positioned(
-                      top: 40,
-                      left: 20,
-                      child: IconButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/');
-                        },
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 40,
+                    left: 20,
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/');
+                      },
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 32),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 50,
+                    top: 0,
+                    bottom: 0,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.person_add, color: Colors.white, size: 40),
+                              SizedBox(height: 10),
+                              Text("Join our",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2)),
+                              SizedBox(height: 5),
+                              Text("POS",
+                                  style: TextStyle(color: Colors.white70, fontSize: 14, letterSpacing: 1)),
+                              SizedBox(height: 5),
+                              Text("Community", style: TextStyle(color: Colors.white60, fontSize: 12)),
+                            ],
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    
-                    // Polygonal background elements
-                    Positioned(
-                      top: 100,
-                      left: 50,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 200,
-                      right: 80,
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 150,
-                      left: 30,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 300,
-                      right: 40,
-                      child: Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
-                    
-                    // Left side content
-                    Positioned(
-                      left: 50,
-                      top: 0,
-                      bottom: 0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(
-                                  Icons.person_add,
-                                  color: Colors.white,
-                                  size: 40,
-                                ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  'Join our',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                const Text(
-                                  'POS',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                const Text(
-                                  'Community',
-                                  style: TextStyle(
-                                    color: Colors.white60,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            
+
             // Right Panel - Register Form
             Expanded(
               flex: 1,
@@ -194,154 +133,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   padding: const EdgeInsets.all(60.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Header Icon
-                      const Icon(
-                        Icons.person_add,
-                        color: Colors.black,
-                        size: 50,
-                      ),
+                      const Icon(Icons.person_add, color: Colors.black, size: 50),
                       const SizedBox(height: 40),
-                      
-                      // Name Field
-                      TextField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          hintText: 'Full Name',
-                          prefixIcon: const Icon(
-                            Icons.person_outline,
-                            color: Colors.black,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black, width: 2),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        ),
-                      ),
+
+                      // Name
+                      _buildTextField(_nameController, "Full Name", Icons.person_outline),
                       const SizedBox(height: 20),
-                      
-                      // Email Field
-                      TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          hintText: 'Email Address',
-                          prefixIcon: const Icon(
-                            Icons.email_outlined,
-                            color: Colors.black,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black, width: 2),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        ),
-                      ),
+
+                      // Email
+                      _buildTextField(_emailController, "Email Address", Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress),
                       const SizedBox(height: 20),
-                      
-                      // Password Field
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        decoration: InputDecoration(
-                          hintText: 'Password',
-                          prefixIcon: const Icon(
-                            Icons.lock_outline,
-                            color: Colors.black,
-                          ),
+
+                      // Password
+                      _buildTextField(_passwordController, "Password", Icons.lock_outline,
+                          obscureText: !_isPasswordVisible,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                               color: Colors.black,
                             ),
                             onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
+                              setState(() => _isPasswordVisible = !_isPasswordVisible);
                             },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black, width: 2),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        ),
-                      ),
+                          )),
                       const SizedBox(height: 20),
-                      
-                      // Confirm Password Field
-                      TextField(
-                        controller: _confirmPasswordController,
-                        obscureText: !_isConfirmPasswordVisible,
-                        decoration: InputDecoration(
-                          hintText: 'Confirm Password',
-                          prefixIcon: const Icon(
-                            Icons.lock_outline,
-                            color: Colors.black,
-                          ),
+
+                      // Confirm Password
+                      _buildTextField(_confirmPasswordController, "Confirm Password", Icons.lock_outline,
+                          obscureText: !_isConfirmPasswordVisible,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
                               color: Colors.black,
                             ),
                             onPressed: () {
-                              setState(() {
-                                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                              });
+                              setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
                             },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black, width: 2),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        ),
-                      ),
+                          )),
                       const SizedBox(height: 30),
-                      
-                      // Register Button
+
+                      // Register button
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -350,42 +183,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF357ABD),
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
-                          child: const Text(
-                            'CREATE ACCOUNT',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
+                          child: const Text("CREATE ACCOUNT",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
-                      // Sign In Link
+
+                      // Sign in link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Already have an account? ',
-                            style: TextStyle(color: Colors.grey),
-                          ),
+                          const Text('Already have an account? ', style: TextStyle(color: Colors.grey)),
                           TextButton(
                             onPressed: () {
                               Navigator.pushReplacementNamed(context, '/login');
                             },
-                            child: const Text(
-                              'Sign In',
-                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                            ),
+                            child: const Text("Sign In",
+                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                           ),
                         ],
-                      ),
+                      )
                     ],
                   ),
                 ),
@@ -393,6 +212,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller,
+      String hint,
+      IconData icon, {
+        bool obscureText = false,
+        TextInputType keyboardType = TextInputType.text,
+        Widget? suffixIcon,
+      }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: Colors.black),
+        suffixIcon: suffixIcon,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.grey)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.grey)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.black, width: 2)),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
     );
   }
