@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 // Import your screens
-import 'package:pos_app/components/dashboard.dart';
-import 'package:pos_app/components/checkout.dart';
-import 'package:pos_app/components/reports.dart';
-import 'package:pos_app/components/login.dart';
-import 'package:pos_app/components/register.dart';
+import 'package:pos_app/main/dashboard.dart';
+import 'package:pos_app/main/checkout.dart';
+import 'package:pos_app/main/reports.dart';
+import 'package:pos_app/main/login.dart';
+import 'package:pos_app/main/register.dart';
 
 void main() {
   runApp(const POSApp());
